@@ -19,7 +19,6 @@ app.post("/", async (req, res) => {
         "--disable-setuid-sandbox",
         "--no-sandbox",
         "--single-process",
-        "--use-gl=egl",
         "--no-zygote",
       ],
       executablePath:
