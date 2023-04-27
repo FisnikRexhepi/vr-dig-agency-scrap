@@ -12,45 +12,60 @@ app.get("/", (req, res) => {
 
 app.post("/", async (req, res) => {
   const keyword = req.body.keyword;
-  console.log(`Scraping URLs for keyword: ${keyword}`);
-  const browser = await puppeteer.launch();
-  const page = await browser.newPage();
-  const url = `https://www.google.com/search?q=${keyword}`;
-  await page.goto(url);
-  let urls = [];
-  while (urls.length < 500) {
-    const currentUrls = await page.evaluate(() => {
-      const links = Array.from(document.querySelectorAll("a"));
-      const urls = links.map((link) => link.href);
-      const nonGoogleUrls = urls.filter((url) => {
-        return (
-          !url.includes("google.") &&
-          !url.includes("webcache.googleusercontent.com")
-        );
-      });
-      return nonGoogleUrls;
+
+  try {
+    let browser;
+    console.log(`Scraping URLs for keyword: ${keyword}`);
+    console.log("Opening the browser......");
+    browser = await puppeteer.launch({
+      headless: true,
+      ignoreDefaultArgs: ["--disable-extensions"],
+      args: ["--no-sandbox", "--use-gl=egl", "--disable-setuid-sandbox"],
+      ignoreHTTPSErrors: true,
     });
-    urls = [...urls, ...currentUrls];
-    urls = Array.from(new Set(urls));
-    const nextButton = await page.$("#pnnext");
-    if (urls.length >= 500 || !nextButton) {
-      break;
+    const page = await browser.newPage();
+    await page.setUserAgent(
+      "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.125 Safari/537.36"
+    );
+    const url = `https://www.google.com/search?q=${keyword}`;
+    await page.goto(url);
+    let urls = [];
+    while (urls.length < 500) {
+      const currentUrls = await page.evaluate(() => {
+        const links = Array.from(document.querySelectorAll("a"));
+        const urls = links.map((link) => link.href);
+        const nonGoogleUrls = urls.filter((url) => {
+          return (
+            !url.includes("google.") &&
+            !url.includes("webcache.googleusercontent.com")
+          );
+        });
+        return nonGoogleUrls;
+      });
+      urls = [...urls, ...currentUrls];
+      urls = Array.from(new Set(urls));
+      const nextButton = await page.$("#pnnext");
+      if (urls.length >= 500 || !nextButton) {
+        break;
+      }
+      await Promise.all([
+        page.waitForNavigation({ waitUntil: "networkidle2" }),
+        page.click("#pnnext"),
+      ]);
     }
-    await Promise.all([
-      page.waitForNavigation({ waitUntil: "networkidle2" }),
-      page.click("#pnnext"),
-    ]);
+    const foundedUrls = urls.slice(0, 500).map((url) => ({ url }));
+    console.log(`Finished scraping URLs`);
+    await browser.close();
+    foundedUrls.splice(0, 1);
+    const csvFields = ["Url"];
+    const csvParser = new CsvParser({ csvFields });
+    const csvData = csvParser.parse(foundedUrls);
+    res.setHeader("Content-Type", "text/csv");
+    res.setHeader("Content-Disposition", "attachment; filename=urls.csv");
+    res.status(200).end(csvData);
+  } catch (err) {
+    console.log("Could not create a browser instance => : ", err);
   }
-  const foundedUrls = urls.slice(0, 500).map((url) => ({ url }));
-  console.log(`Finished scraping URLs`);
-  await browser.close();
-  foundedUrls.splice(0, 1);
-  const csvFields = ["Url"];
-  const csvParser = new CsvParser({ csvFields });
-  const csvData = csvParser.parse(foundedUrls);
-  res.setHeader("Content-Type", "text/csv");
-  res.setHeader("Content-Disposition", "attachment; filename=urls.csv");
-  res.status(200).end(csvData);
 });
 
 app.listen(port, () => {
