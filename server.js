@@ -5,28 +5,28 @@ const port = 3000;
 const CsvParser = require("json2csv").Parser;
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static("public"));
-
-app.get("/", (req, res) => {
-  res.sendFile(__dirname + "/index.html");
-});
+require("dotenv").config();
 
 app.post("/", async (req, res) => {
-  const keyword = req.body.keyword;
-
+  const keyword = "telegrafi";
   try {
     let browser;
     console.log(`Scraping URLs for keyword: ${keyword}`);
     console.log("Opening the browser......");
     browser = await puppeteer.launch({
-      headless: true,
-      ignoreDefaultArgs: ["--disable-extensions"],
-      args: ["--no-sandbox", "--use-gl=egl", "--disable-setuid-sandbox"],
-      ignoreHTTPSErrors: true,
+      args: [
+        "--disable-setuid-sandbox",
+        "--no-sandbox",
+        "--single-process",
+        "--use-gl=egl",
+        "--no-zygote",
+      ],
+      executablePath:
+        process.env.NODE_ENV === "production"
+          ? process.env.PUPPETEER_EXECUTABLE_PATH
+          : puppeteer.executablePath(),
     });
     const page = await browser.newPage();
-    await page.setUserAgent(
-      "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.125 Safari/537.36"
-    );
     const url = `https://www.google.com/search?q=${keyword}`;
     await page.goto(url);
     let urls = [];
