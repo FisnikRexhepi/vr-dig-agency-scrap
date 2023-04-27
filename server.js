@@ -9,7 +9,7 @@ require("dotenv").config();
 
 app.get("", async (req, res) => {
   res.send(
-    "<html> <head></head><body><h1><p>Please write your word to scrap in the url above: <br/> Example: https://vr-dig-agency-scrap.onrender.com/spotify</p> <br>Then wait a few seconds for the file CALLED 'urls.csv' to download</h1><br/> <h2>Thank you, have a nice day !</h2></body></html>"
+    "<html><head></head><body><h1><p>Please write your word to scrap in the url above: <br/> Example: https://vr-dig-agency-scrap.onrender.com/spotify</p> <br>Then wait a few seconds for the file CALLED 'urls.csv' to download</h1><br/> <h2>Thank you, have a nice day !</h2></body></html>"
   );
 });
 
