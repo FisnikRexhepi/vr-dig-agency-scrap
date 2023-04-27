@@ -24,7 +24,7 @@ app.post("/:keyword", async (req, res) => {
       executablePath:
         process.env.NODE_ENV === "production"
           ? process.env.PUPPETEER_EXECUTABLE_PATH
-          : "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+          : "/usr/bin/google-chrome-stable",
     });
     const page = await browser.newPage();
     const url = `https://www.google.com/search?gl=us&hl=en&pws=0&gws_rd=cr&q=${keyword}`;
