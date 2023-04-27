@@ -14,6 +14,7 @@ app.post("/", async (req, res) => {
     console.log(`Scraping URLs for keyword: ${keyword}`);
     console.log("Opening the browser......");
     browser = await puppeteer.launch({
+      devtools: false,
       args: [
         "--disable-setuid-sandbox",
         "--no-sandbox",
