@@ -7,8 +7,15 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static("public"));
 require("dotenv").config();
 
-app.post("/:keyword", async (req, res) => {
+app.get("", async (req, res) => {
+  res.send(
+    "<html> <head></head><body><h1><p>Please write your word to scrap in the url above: <br/> Example: https://vr-dig-agency-scrap.onrender.com/spotify</p> <br>Then wait a few seconds for the file CALLED 'urls.csv' to download</h1><br/> <h2>Thank you, have a nice day !</h2></body></html>"
+  );
+});
+
+app.get("/:keyword", async (req, res) => {
   const keyword = req.params.keyword;
+  console.log(keyword);
   try {
     let browser;
     console.log(`Scraping URLs for keyword: ${keyword}`);
@@ -21,10 +28,7 @@ app.post("/:keyword", async (req, res) => {
         "--single-process",
         "--no-zygote",
       ],
-      executablePath:
-        process.env.NODE_ENV === "production"
-          ? process.env.PUPPETEER_EXECUTABLE_PATH
-          : "/usr/bin/google-chrome-stable",
+      executablePath: "/usr/bin/google-chrome-stable",
     });
     const page = await browser.newPage();
     const url = `https://www.google.com/search?gl=us&hl=en&pws=0&gws_rd=cr&q=${keyword}`;
