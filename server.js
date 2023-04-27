@@ -7,8 +7,8 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static("public"));
 require("dotenv").config();
 
-app.post("/", async (req, res) => {
-  const keyword = "telegrafi";
+app.post("/:keyword", async (req, res) => {
+  const keyword = req.params.keyword;
   try {
     let browser;
     console.log(`Scraping URLs for keyword: ${keyword}`);
@@ -24,7 +24,7 @@ app.post("/", async (req, res) => {
       executablePath:
         process.env.NODE_ENV === "production"
           ? process.env.PUPPETEER_EXECUTABLE_PATH
-          : puppeteer.executablePath(),
+          : "/usr/bin/google-chrome-stable",
     });
     const page = await browser.newPage();
     const url = `https://www.google.com/search?q=${keyword}`;
